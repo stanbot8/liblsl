@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "benchmark": "liblsl consumer data throughput",
+  "baseline_commit": "e651023ca67996a05a028fd88a28603297120294",
+  "candidate_commit": "bbb9aa8cb40553449f2b49547e02ed1f4909f0d9",
+  "workload": {
+    "samples": 1048576,
+    "channels": 8,
+    "samples_per_chunk": 32,
+    "consumer_count": 1,
+    "repetitions": 6
+  },
+  "environment": {
+    "container": "Ubuntu 24.04 on Docker Desktop WSL2",
+    "compiler": "GCC 13.3.0",
+    "cmake": "3.28.3",
+    "build": "Release with LTO",
+    "host_cpu": "Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz"
+  },
+  "correctness_check": "Each trial received exactly 1048576 samples. Each trial rejected a pull timeout.",
+  "results": {
+    "default": {
+      "baseline_seconds": [
+        2.34137,
+        2.38433,
+        2.39403,
+        2.35368,
+        2.36587,
+        2.45932
+      ],
+      "candidate_seconds": [
+        2.3256,
+        2.33008,
+        2.36424,
+        2.33307,
+        2.34183,
+        2.39156
+      ],
+      "baseline_median_seconds": 2.3751,
+      "candidate_median_seconds": 2.33745,
+      "candidate_change_percent": -1.585
+    },
+    "sync": {
+      "baseline_seconds": [
+        0.501189,
+        0.554274,
+        0.560838,
+        0.484276,
+        0.522465,
+        0.538373
+      ],
+      "candidate_seconds": [
+        0.502823,
+        0.511788,
+        0.527485,
+        0.517169,
+        0.551401,
+        0.574812
+      ],
+      "baseline_median_seconds": 0.530419,
+      "candidate_median_seconds": 0.522327,
+      "candidate_change_percent": -1.526
+    }
+  }
+}
