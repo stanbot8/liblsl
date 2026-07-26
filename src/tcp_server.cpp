@@ -63,6 +63,38 @@ namespace lsl {
  * - So memory is generally owned by the code (functors and stack frames) that needs to refer to
  * it for the duration of the execution.
  */
+/// A synchronous data socket that records peer disconnects.
+class monitored_socket : public std::enable_shared_from_this<monitored_socket> {
+public:
+	monitored_socket(
+		io_context_p io, tcp_socket::protocol_type protocol, tcp_socket::native_handle_type handle)
+		: io_(std::move(io)), socket_(*io_, protocol, handle) {}
+
+	tcp_socket &socket() { return socket_; }
+
+	bool connected() const { return connected_.load(std::memory_order_acquire); }
+
+	void begin_monitoring() {
+		std::weak_ptr<monitored_socket> weak = shared_from_this();
+		socket_.async_wait(tcp_socket::wait_read, [weak](err_t /*unused*/) {
+			if (auto self = weak.lock()) self->connected_.store(false, std::memory_order_release);
+		});
+	}
+
+	void close() {
+		connected_.store(false, std::memory_order_release);
+		asio::error_code ec;
+		socket_.close(ec);
+	}
+
+private:
+	io_context_p io_;
+	tcp_socket socket_;
+	std::atomic<bool> connected_{true};
+};
+
+using monitored_socket_p = std::shared_ptr<monitored_socket>;
+
 /**
  * Handler for synchronous (blocking) writes to all connected clients.
  * This class manages sockets that have been handed off from client_session
@@ -81,31 +113,30 @@ public:
 	 * @param send_timeout Per-consumer blocking-send timeout in seconds; 0 means block forever.
 	 *        A consumer that can't accept a sample within this time is disconnected.
 	 */
-	sync_write_handler(std::size_t sample_bytes, std::size_t value_size, uint32_t num_channels,
-		double send_timeout)
-		: io_ctx_(1), sample_bytes_(sample_bytes), value_size_(value_size),
+	sync_write_handler(io_context_p io, std::size_t sample_bytes, std::size_t value_size,
+		uint32_t num_channels, double send_timeout)
+		: io_(std::move(io)), sample_bytes_(sample_bytes), value_size_(value_size),
 		  num_channels_(num_channels), send_timeout_(send_timeout) {}
 
-	~sync_write_handler() {
-		// Close all sockets
-		auto close_sockets = [](std::vector<tcp_socket_p> &sockets) {
-			for (auto &sock : sockets) {
-				if (sock && sock->is_open()) {
-					asio::error_code ec;
-					sock->close(ec);
-				}
-			}
-		};
-		close_sockets(sockets_native_);
-		close_sockets(sockets_swapped_);
+	~sync_write_handler() { end_serving(); }
+
+	void end_serving() {
+		std::lock_guard<std::mutex> lock(mutex_);
+		for (auto &sock : sockets_native_)
+			if (sock) sock->close();
+		for (auto &sock : sockets_swapped_)
+			if (sock) sock->close();
+		sockets_native_.clear();
+		sockets_swapped_.clear();
 	}
 
 	/// Add a socket for sync writes (called from client_session after handshake)
 	void add_socket(tcp_socket::native_handle_type handle, tcp_socket::protocol_type protocol,
 		bool reverse_byte_order) {
 		std::lock_guard<std::mutex> lock(mutex_);
-		auto sock = std::make_unique<tcp_socket>(io_ctx_, protocol, handle);
-		apply_send_timeout(*sock);
+		auto sock = std::make_shared<monitored_socket>(io_, protocol, handle);
+		apply_send_timeout(sock->socket());
+		sock->begin_monitoring();
 		if (reverse_byte_order) {
 			sockets_swapped_.push_back(std::move(sock));
 			LOG_F(INFO, "Added sync socket (swapped endian), now have %zu native + %zu swapped",
@@ -137,25 +168,31 @@ public:
 
 		// Remove closed sockets from both groups
 		if (any_broken) {
-			auto remove_closed = [](std::vector<tcp_socket_p> &sockets) {
-				sockets.erase(std::remove_if(sockets.begin(), sockets.end(),
-								  [](const tcp_socket_p &s) { return !s || !s->is_open(); }),
-					sockets.end());
-			};
-			remove_closed(sockets_native_);
-			remove_closed(sockets_swapped_);
+			remove_disconnected();
 			LOG_F(INFO, "After cleanup, have %zu native + %zu swapped sync consumers",
 				sockets_native_.size(), sockets_swapped_.size());
 		}
 	}
 
 	/// Check if there are any connected consumers
-	bool have_consumers() const {
+	bool have_consumers() {
 		std::lock_guard<std::mutex> lock(mutex_);
+		remove_disconnected();
 		return !sockets_native_.empty() || !sockets_swapped_.empty();
 	}
 
 private:
+	void remove_disconnected() {
+		auto remove = [](std::vector<monitored_socket_p> &sockets) {
+			sockets.erase(
+				std::remove_if(sockets.begin(), sockets.end(),
+					[](const monitored_socket_p &sock) { return !sock || !sock->connected(); }),
+				sockets.end());
+		};
+		remove(sockets_native_);
+		remove(sockets_swapped_);
+	}
+
 	/// Apply the configured blocking-send timeout to a socket (no-op if disabled). SO_SNDTIMEO
 	/// only takes effect on a blocking socket, so we force blocking mode first. On expiry a
 	/// synchronous write returns try_again/would_block/timed_out, which write_to_group treats
@@ -177,14 +214,14 @@ private:
 	}
 
 	/// Write buffers to a group of sockets, returns true if any socket was broken
-	bool write_to_group(std::vector<tcp_socket_p> &sockets,
-		const std::vector<asio::const_buffer> &bufs) {
+	bool write_to_group(
+		std::vector<monitored_socket_p> &sockets, const std::vector<asio::const_buffer> &bufs) {
 		bool any_broken = false;
 		for (auto &sock : sockets) {
-			if (!sock || !sock->is_open()) continue;
+			if (!sock) continue;
 
 			asio::error_code ec;
-			asio::write(*sock, bufs, ec);
+			asio::write(sock->socket(), bufs, ec);
 
 			if (ec) {
 				switch (ec.value()) {
@@ -202,7 +239,7 @@ private:
 					break;
 				default: LOG_F(ERROR, "Sync write error: %s", ec.message().c_str());
 				}
-				sock->close(ec);
+				sock->close();
 				any_broken = true;
 			}
 		}
@@ -214,10 +251,10 @@ private:
 		return sync_swap_buffers(bufs, swapped_data_, sample_bytes_, value_size_, num_channels_);
 	}
 
-	asio::io_context io_ctx_;
-	std::vector<tcp_socket_p> sockets_native_;  // same endianness as server
-	std::vector<tcp_socket_p> sockets_swapped_; // need byte-swapped data
-	mutable std::mutex mutex_;
+	io_context_p io_;
+	std::vector<monitored_socket_p> sockets_native_;  // same endianness as server
+	std::vector<monitored_socket_p> sockets_swapped_; // need byte-swapped data
+	std::mutex mutex_;
 
 	// For byte-swapping
 	std::size_t sample_bytes_;	// total bytes per sample
@@ -268,6 +305,9 @@ private:
 	/// Handler that gets called when a sample transfer has been completed.
 	void handle_chunk_transfer_outcome(err_t err, std::size_t len);
 
+	/// Watch the receive side of a data socket for a peer disconnect.
+	void monitor_disconnect();
+
 	/// shared pointer to IO service; ensures that the IO is still around by the time the serv_ and
 	/// sock_ need to be destroyed
 	io_context_p io_;
@@ -275,6 +315,8 @@ private:
 	std::weak_ptr<tcp_server> serv_;
 	/// connection socket
 	tcp_socket sock_;
+	/// queue that belongs to this data connection
+	std::weak_ptr<consumer_queue> consumer_queue_;
 
 	// data used by the transfer thread (and some other handlers)
 	/// this buffer holds the data feed generated by us
@@ -320,7 +362,7 @@ tcp_server::tcp_server(stream_info_impl_p info, io_context_p io, send_buffer_p s
 		uint32_t num_channels = info_->channel_count();
 		double send_timeout = api_config::get_instance()->sync_send_timeout();
 		sync_handler_ = std::make_unique<sync_write_handler>(
-			sample_bytes, value_size, num_channels, send_timeout);
+			io_, sample_bytes, value_size, num_channels, send_timeout);
 		LOG_F(INFO, "TCP server initialized in synchronous (zero-copy) mode (send timeout %.1fs)",
 			send_timeout);
 	}
@@ -366,9 +408,7 @@ void tcp_server::write_all_blocking(const std::vector<asio::const_buffer> &bufs)
 	}
 }
 
-bool tcp_server::have_sync_consumers() const {
-	return sync_handler_ && sync_handler_->have_consumers();
-}
+bool tcp_server::have_sync_consumers() { return sync_handler_ && sync_handler_->have_consumers(); }
 
 // === externally issued asynchronous commands ===
 
@@ -382,6 +422,7 @@ void tcp_server::begin_serving() {
 }
 
 void tcp_server::end_serving() {
+	if (sync_handler_) sync_handler_->end_serving();
 	// issue closure of the server socket; this will result in a cancellation of the associated IO
 	// operations
 	post(*io_, [this, shared_this = shared_from_this()]() {
@@ -744,6 +785,8 @@ void client_session::handle_send_feedheader_outcome(err_t err, std::size_t n) {
 
 		// determine transfer parameters
 		auto queue = serv->send_buffer_->new_consumer(max_buffered_);
+		consumer_queue_ = queue;
+		monitor_disconnect();
 
 		// determine the maximum chunk size
 		int max_samples_per_chunk = std::numeric_limits<int>::max();
@@ -771,7 +814,10 @@ void client_session::transfer_samples_thread(std::shared_ptr<client_session> /* 
 
 			// ignore blank samples (they are basically wakeup notifiers from someone's
 			// end_serving())
-			if (!samp) continue;
+			if (!samp) {
+				if (queue->is_closed()) break;
+				continue;
+			}
 			// serialize the sample into the stream
 			if (data_protocol_version_ >= 110)
 				samp->save_streambuf(
@@ -800,6 +846,15 @@ void client_session::transfer_samples_thread(std::shared_ptr<client_session> /* 
 			LOG_F(WARNING, "Unexpected glitch in transfer_samples_thread: %s", e.what());
 		}
 	}
+}
+
+void client_session::monitor_disconnect() {
+	std::weak_ptr<client_session> weak = shared_from_this();
+	sock_.async_wait(tcp_socket::wait_read, [weak](err_t /*unused*/) {
+		auto session = weak.lock();
+		if (!session) return;
+		if (auto queue = session->consumer_queue_.lock()) queue->close();
+	});
 }
 
 void client_session::handle_chunk_transfer_outcome(err_t err, std::size_t len) {

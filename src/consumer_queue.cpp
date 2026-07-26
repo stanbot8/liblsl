@@ -30,6 +30,18 @@ consumer_queue::~consumer_queue() {
 	delete[] buffer_;
 }
 
+void consumer_queue::close() {
+	send_buffer_p registry;
+	{
+		std::lock_guard<std::mutex> lock(mut_);
+		if (closed_.exchange(true, std::memory_order_acq_rel)) return;
+		registry = std::move(registry_);
+	}
+	if (registry) registry->unregister_consumer(this);
+	flush();
+	cv_.notify_all();
+}
+
 uint32_t consumer_queue::flush() noexcept {
 	uint32_t n = 0;
 	while (try_pop()) n++;

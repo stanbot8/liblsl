@@ -84,10 +84,17 @@ public:
 			// only acquire mutex if we have to do a blocking wait with timeout
 			std::chrono::duration<double> sec(timeout);
 			std::unique_lock<std::mutex> lk(mut_);
-			if (!try_pop(result)) cv_.wait_for(lk, sec, [&] { return this->try_pop(result); });
+			if (!try_pop(result))
+				cv_.wait_for(lk, sec, [&] { return is_closed() || this->try_pop(result); });
 		}
 		return result;
 	}
+
+	/// Close and unregister the queue. Wake each blocked consumer.
+	void close();
+
+	/// Check whether the queue is closed.
+	bool is_closed() const noexcept { return closed_.load(std::memory_order_acquire); }
 
 	/// Number of available samples. This is approximate unless called by the thread calling the
 	/// pop_sample().
@@ -200,6 +207,8 @@ private:
 
 	/// whether we have performed a sync on the data stored by the constructor
 	std::atomic<bool> done_sync_{false};
+	/// whether this queue is closed
+	std::atomic<bool> closed_{false};
 };
 
 } // namespace lsl
