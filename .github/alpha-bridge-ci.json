@@ -1,36 +1,42 @@
 {
   "default_workflow_permissions": "read",
   "definition_blob_sha1": {
-    ".github/workflows/alpha-bridge-ci-probe.yml": "f77ab4ad7b56a3571281506f6969a1e9889e556a",
-    ".github/workflows/alpha-bridge-ci-verify.yml": "95760790304a2bad6d6820ee35e70aafba80f356",
-    ".github/workflows/android.yml": "8463cce35430a47dddf4498048986ba06ab5b7d8",
-    ".github/workflows/apple-release.yml": "90967397e682911baa12e854d50023a3f7b0a0c2",
-    ".github/workflows/apple.yml": "b1441879ad0610b72ad656dc0cded446566901eb",
-    ".github/workflows/cppcmake.yml": "b599e753f4411bb8fb7132278d62f9c561c2c6b4",
-    ".github/workflows/mingw_static.yml": "e42ba1ba03d303b87eed1b7f110f84b1a61a75d3"
+    ".github/workflows/alpha-bridge-ci-consumer.yml": "dd3245f3a2a4027e71859a2e51513d2203429d3f",
+    ".github/workflows/alpha-bridge-ci-probe.yml": "aaccb32547883d4905e9c1e9f5b1907dbeaa9730",
+    ".github/workflows/alpha-bridge-ci-verify.yml": "97dd816b899c13f4586bd83fd63ef410f5cc750c",
+    ".github/workflows/android.yml": "6874ca09312419ded7fffe70540bcaec7e2e7cf0",
+    ".github/workflows/apple-release.yml": "712ff12f1f56593d6f20f09f6507c7d1c11a50d9",
+    ".github/workflows/apple.yml": "484523d6137f8ca7a9afffb75d9c70b3479daf7f",
+    ".github/workflows/cppcmake.yml": "905117dcfe0358c2fbf2e142aa159d33201f1766",
+    ".github/workflows/crucible-call-alpha-bridge-ci-probe.yml": "0bc7db45c659d81ffd602bbfd39f8bf7d657cecf",
+    ".github/workflows/mingw_static.yml": "df877bc32816c889ae5f4960ed7680a208b73172"
   },
   "definition_sha256": {
-    ".github/workflows/alpha-bridge-ci-probe.yml": "90f1497e0c8964df7ce687e21d00ea5f4472246fbbdbf3aa21826960efbb18c2",
-    ".github/workflows/alpha-bridge-ci-verify.yml": "4b1ca9d589df4e671637798677985a2baf15c4607d71689df399a109b491e0a2",
-    ".github/workflows/android.yml": "8dbe122b96c0187ff249b466fca5ec6c0b339b92fd5f6a85730bc0272b09a522",
-    ".github/workflows/apple-release.yml": "f107aa7a72de600ade289e22eccd6ae810b1b93834c127e8e1b85bcd6e0475a3",
-    ".github/workflows/apple.yml": "942fd10204034b54499ee29f5620e07b65e42a1274383f9a5dc1d5578a5c6605",
-    ".github/workflows/cppcmake.yml": "b6838d3b4b34660235d6e25cd5e9f6ec73216238dd86661df21ed17196e90f27",
-    ".github/workflows/mingw_static.yml": "ecbadebdaea70f3183f7b0f7e8652cf438d894a8300f294f44017b1ae061bd76"
+    ".github/workflows/alpha-bridge-ci-consumer.yml": "701dc471ca557edf1d75e39d83db1a368f1aaf1c9609c4d52cc803ac9901c03d",
+    ".github/workflows/alpha-bridge-ci-probe.yml": "ad96a7443de016087fa573620462807da8562856c36b566614cd747f1e904588",
+    ".github/workflows/alpha-bridge-ci-verify.yml": "25578ca86e98ceeb86fbcb238fdec0731d9d0ffe1580f65aa2e0000f41ff9a56",
+    ".github/workflows/android.yml": "86f86f287df8a6fa58603e8c0508acfeb9ff73e278ffb2c05cba07646d9d20f8",
+    ".github/workflows/apple-release.yml": "22df76d94a94a369373c0a91762440277d2ac23169245e7314460905489a12d0",
+    ".github/workflows/apple.yml": "59b614ff5995550ce157a7036d64a564c812ceaa3d648f4f143032b637a94c36",
+    ".github/workflows/cppcmake.yml": "24d98baba08d05bbdc3005769980946c5929a52bd37c18a0acf20dba275eb8b8",
+    ".github/workflows/crucible-call-alpha-bridge-ci-probe.yml": "dfb02ee69a2ce5279d5829f43ffa95d9a86b91e7d04604de461113b36787a7a9",
+    ".github/workflows/mingw_static.yml": "78cdd86199c18a12d91877bd3ca1746abe5321798f5c526526965e5accf5e014"
   },
-  "generator_sha256": "4bbd1a1f9315d134cec261dd0580b504db191355193dfc428c3ca0ac65bb6b74",
+  "generator_sha256": "57bbc5a594aacb9fe71e1c3ebf2678e841494ad1ede64e1a822c3e835b196631",
   "schema": "alpha-bridge/fork-ci",
   "source_branch": "dev",
   "source_commit": "42118f80ff9235be11cd54d24b3a25f576c34812",
   "source_repository": "sccn/liblsl",
   "version": 1,
   "workflows": [
+    ".github/workflows/alpha-bridge-ci-consumer.yml",
     ".github/workflows/alpha-bridge-ci-probe.yml",
     ".github/workflows/alpha-bridge-ci-verify.yml",
     ".github/workflows/android.yml",
     ".github/workflows/apple-release.yml",
     ".github/workflows/apple.yml",
     ".github/workflows/cppcmake.yml",
+    ".github/workflows/crucible-call-alpha-bridge-ci-probe.yml",
     ".github/workflows/mingw_static.yml"
   ]
 }
