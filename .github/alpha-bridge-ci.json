@@ -1,24 +1,24 @@
 {
   "default_workflow_permissions": "read",
   "definition_blob_sha1": {
-    ".github/workflows/alpha-bridge-ci-probe.yml": "54863818654b6c3b324f47f927554ca656b0ba72",
+    ".github/workflows/alpha-bridge-ci-probe.yml": "f77ab4ad7b56a3571281506f6969a1e9889e556a",
     ".github/workflows/alpha-bridge-ci-verify.yml": "95760790304a2bad6d6820ee35e70aafba80f356",
-    ".github/workflows/android.yml": "af174ca67fe04165c4ce53d0114b679e0d42f0de",
-    ".github/workflows/apple-release.yml": "0acecce5a0078aad832b72cc79d661003248d1c9",
-    ".github/workflows/apple.yml": "24a94842cfe1bf3c27dd5e6acebb14a42abb6384",
-    ".github/workflows/cppcmake.yml": "ca6780a25926390bf8d32938fb1d38577d9a66f8",
-    ".github/workflows/mingw_static.yml": "5d086b75c32e1514481ca3358b45ee0065f60818"
+    ".github/workflows/android.yml": "8463cce35430a47dddf4498048986ba06ab5b7d8",
+    ".github/workflows/apple-release.yml": "90967397e682911baa12e854d50023a3f7b0a0c2",
+    ".github/workflows/apple.yml": "b1441879ad0610b72ad656dc0cded446566901eb",
+    ".github/workflows/cppcmake.yml": "b599e753f4411bb8fb7132278d62f9c561c2c6b4",
+    ".github/workflows/mingw_static.yml": "e42ba1ba03d303b87eed1b7f110f84b1a61a75d3"
   },
   "definition_sha256": {
-    ".github/workflows/alpha-bridge-ci-probe.yml": "0637dc006384f188f10c612b30c708f59c9d535a41c4852e3d40cf692635e8a9",
+    ".github/workflows/alpha-bridge-ci-probe.yml": "90f1497e0c8964df7ce687e21d00ea5f4472246fbbdbf3aa21826960efbb18c2",
     ".github/workflows/alpha-bridge-ci-verify.yml": "4b1ca9d589df4e671637798677985a2baf15c4607d71689df399a109b491e0a2",
-    ".github/workflows/android.yml": "f9b885b7855727a295c8d982da83b64663dcaae72c1916b3702f1573ca49921c",
-    ".github/workflows/apple-release.yml": "6d314f26b2c105907c5871ce8e9d52708cf8a81d73b43be67bf0c7e8bc92dd66",
-    ".github/workflows/apple.yml": "1d02faf2d2dd136bd9807f5f344e864bfc155b90bb8cc462c4b4415b03eaf40a",
-    ".github/workflows/cppcmake.yml": "0837a6ad4cb901574bd594bec23e14a3795d2151b88bb3974fabf976ad6eb665",
-    ".github/workflows/mingw_static.yml": "1d17129fea911b0d3b582c82ca330277af109f01ed7e3cad9246ecda6a3540db"
+    ".github/workflows/android.yml": "8dbe122b96c0187ff249b466fca5ec6c0b339b92fd5f6a85730bc0272b09a522",
+    ".github/workflows/apple-release.yml": "f107aa7a72de600ade289e22eccd6ae810b1b93834c127e8e1b85bcd6e0475a3",
+    ".github/workflows/apple.yml": "942fd10204034b54499ee29f5620e07b65e42a1274383f9a5dc1d5578a5c6605",
+    ".github/workflows/cppcmake.yml": "b6838d3b4b34660235d6e25cd5e9f6ec73216238dd86661df21ed17196e90f27",
+    ".github/workflows/mingw_static.yml": "ecbadebdaea70f3183f7b0f7e8652cf438d894a8300f294f44017b1ae061bd76"
   },
-  "generator_sha256": "5a9faa0e5f7f50db58c87e3b337aa37b202117d9b2f8a1cf999b892b9c2dce77",
+  "generator_sha256": "4bbd1a1f9315d134cec261dd0580b504db191355193dfc428c3ca0ac65bb6b74",
   "schema": "alpha-bridge/fork-ci",
   "source_branch": "dev",
   "source_commit": "42118f80ff9235be11cd54d24b3a25f576c34812",
