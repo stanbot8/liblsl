@@ -10,13 +10,13 @@ on:
     - '**'
     - '!docs/**'
     - '!.github/**'
-    - .github/workflows/apple.yml
-    - .github/workflows/apple-release.yml
+    - '.github/workflows/apple.yml'
+    - '.github/workflows/apple-release.yml'
   pull_request:
   workflow_dispatch:
     inputs:
       cmakeextra:
-        description: Extra CMake options
+        description: 'Extra CMake options'
         required: false
         default: ''
 
@@ -40,14 +40,14 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - {name: macOS-latest, os: macOS-latest, platform: macos, cmake_extra: 
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DLSL_UNITTESTS=ON 
-            -DLSL_BENCHMARKS=ON -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"}
-        - {name: iOS, os: macOS-latest, platform: ios, cmake_extra: 
-            -DCMAKE_TOOLCHAIN_FILE=cmake/ios.toolchain.cmake -DPLATFORM=OS64}
-        - {name: iOS Simulator, os: macOS-latest, platform: ios-simulator, 
-            cmake_extra: -DCMAKE_TOOLCHAIN_FILE=cmake/ios.toolchain.cmake 
-            -DPLATFORM=SIMULATOR64COMBINED -G Xcode}
+        - {name: "macOS-latest", os: "macOS-latest", platform: "macos", 
+            cmake_extra: "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DLSL_UNITTESTS=ON -DLSL_BENCHMARKS=ON
+            -DCMAKE_OSX_ARCHITECTURES=\"x86_64;arm64\""}
+        - {name: "iOS", os: "macOS-latest", platform: "ios", cmake_extra: "-DCMAKE_TOOLCHAIN_FILE=cmake/ios.toolchain.cmake
+            -DPLATFORM=OS64"}
+        - {name: "iOS Simulator", os: "macOS-latest", platform: "ios-simulator", 
+            cmake_extra: "-DCMAKE_TOOLCHAIN_FILE=cmake/ios.toolchain.cmake -DPLATFORM=SIMULATOR64COMBINED
+            -G Xcode"}
 
     steps:
     - uses: actions/checkout@v4
@@ -130,8 +130,8 @@ jobs:
 
     needs:
     - alpha_bridge_inputs
-    if: ${{ (success()) && needs.alpha_bridge_inputs.outputs.changed == 'true' 
-      }}
+    if: |-
+      ${{ (success()) && needs.alpha_bridge_inputs.outputs.changed == 'true' }}
   xcframework:
     name: Unsigned XCFramework
     needs:
@@ -169,8 +169,8 @@ jobs:
         name: unsigned-xcframework
         path: package/lsl.xcframework.*.zip
         if-no-files-found: error
-    if: ${{ (success()) && needs.alpha_bridge_inputs.outputs.changed == 'true' 
-      }}
+    if: |-
+      ${{ (success()) && needs.alpha_bridge_inputs.outputs.changed == 'true' }}
   alpha_bridge_inputs:
     name: CI input check
     runs-on: ubuntu-latest
@@ -196,7 +196,7 @@ jobs:
         AB_REF: ${{ (github.event_name == 'schedule' || github.event_name == 
           'workflow_run') && 'refs/heads/dev' || github.ref }}
         AB_WORKFLOW_DIGEST: 
-          ec110eb2ee97930e62726d93a0d126b91ce2ed31a40b523420123d2912c8fb30
+          4fec1a6f2b3162dc9de892c152714568c4cebd410b6e08c426d23c960bd96671
         AB_EVENT: ${{ github.event_name }}
         AB_SCHEDULE: ${{ github.event.schedule || '' }}
         AB_VARIABLES: ${{ toJSON(vars) }}

@@ -10,14 +10,14 @@ on:
     - '**'
     - '!docs/**'
     - '!.github/**'
-    - .github/workflows/cppcmake.yml
+    - '.github/workflows/cppcmake.yml'
   pull_request:
   release:
-    types: [published]
+    types: ['published']
   workflow_dispatch:
     inputs:
       cmakeextra:
-        description: Extra CMake options
+        description: 'Extra CMake options'
         required: false
         default: ''
 
@@ -40,33 +40,34 @@ jobs:
       matrix:
         config:
         # x86_64 Linux builds
-        - {name: ubuntu-22.04-x64, os: ubuntu-22.04, arch: x86_64}
-        - {name: ubuntu-24.04-x64, os: ubuntu-24.04, arch: x86_64}
+        - {name: "ubuntu-22.04-x64", os: "ubuntu-22.04", arch: "x86_64"}
+        - {name: "ubuntu-24.04-x64", os: "ubuntu-24.04", arch: "x86_64"}
 
         # ARM Linux builds - cross-compiled with QEMU testing (Jetson, Raspberry Pi compatible)
         # SHLIBDEPS must be disabled for cross-compiled packages as the host system
         # does not have the target architecture libraries installed
-        - {name: ubuntu-22.04-arm64, os: ubuntu-22.04, arch: aarch64, 
-            cross_compile: true, cmake_extra: -DLSL_DISABLE_PACKAGE_SHLIBDEPS=ON}
-        - {name: ubuntu-22.04-armhf, os: ubuntu-22.04, arch: armv7, 
-            cross_compile: true, cmake_extra: -DLSL_DISABLE_PACKAGE_SHLIBDEPS=ON}
+        - {name: "ubuntu-22.04-arm64", os: "ubuntu-22.04", arch: "aarch64", 
+            cross_compile: true, cmake_extra: "-DLSL_DISABLE_PACKAGE_SHLIBDEPS=ON"}
+        - {name: "ubuntu-22.04-armhf", os: "ubuntu-22.04", arch: "armv7", 
+            cross_compile: true, cmake_extra: "-DLSL_DISABLE_PACKAGE_SHLIBDEPS=ON"}
 
         # Native ARM build
         # - {name: "ubuntu-24.04-arm64-native", os: "ubuntu-24.04-arm", arch: "aarch64" }
 
         # Windows builds
-        - {name: windows-x64, os: windows-latest, arch: x86_64, cmake_extra: '-T v142,host=x86'}
-        - {name: windows-x86, os: windows-latest, arch: x86, cmake_extra: '-T v142,host=x86
-            -A Win32'}
-        - {name: windows-arm64, os: windows-11-arm, arch: aarch64, cmake_extra: '-T
-            v143,host=ARM64 -A ARM64'}
+        - {name: "windows-x64", os: "windows-latest", arch: "x86_64", 
+            cmake_extra: "-T v142,host=x86"}
+        - {name: "windows-x86", os: "windows-latest", arch: "x86", cmake_extra: "-T
+            v142,host=x86 -A Win32"}
+        - {name: "windows-arm64", os: "windows-11-arm", arch: "aarch64", 
+            cmake_extra: "-T v143,host=ARM64 -A ARM64"}
 
         # macOS non-framework builds (build-only, no tests or release uploads)
         # These verify compatibility with package managers like conda-forge
-        - {name: macos-dylib-x64, os: macos-15-intel, arch: x86_64, cmake_extra: 
-            -DLSL_FRAMEWORK=OFF, build_only: true}
-        - {name: macos-dylib-arm64, os: macos-latest, arch: arm64, cmake_extra: 
-            -DLSL_FRAMEWORK=OFF, build_only: true}
+        - {name: "macos-dylib-x64", os: "macos-15-intel", arch: "x86_64", 
+            cmake_extra: "-DLSL_FRAMEWORK=OFF", build_only: true}
+        - {name: "macos-dylib-arm64", os: "macos-latest", arch: "arm64", 
+            cmake_extra: "-DLSL_FRAMEWORK=OFF", build_only: true}
 
     steps:
     - uses: actions/checkout@v5
@@ -266,8 +267,8 @@ jobs:
         files: package/*.*
     needs:
     - alpha_bridge_inputs
-    if: ${{ (success()) && needs.alpha_bridge_inputs.outputs.changed == 'true' 
-      }}
+    if: |-
+      ${{ (success()) && needs.alpha_bridge_inputs.outputs.changed == 'true' }}
   alpha_bridge_inputs:
     name: CI input check
     runs-on: ubuntu-latest
@@ -293,7 +294,7 @@ jobs:
         AB_REF: ${{ (github.event_name == 'schedule' || github.event_name == 
           'workflow_run') && 'refs/heads/dev' || github.ref }}
         AB_WORKFLOW_DIGEST: 
-          67355faf4a91fca49add4b3353995f2377b90e3097514f44966fc725116e360f
+          c80b8675999d39190bc50d06e5da38590de3e20a7ad694daa93cbbb81cd82be1
         AB_EVENT: ${{ github.event_name }}
         AB_SCHEDULE: ${{ github.event.schedule || '' }}
         AB_VARIABLES: ${{ toJSON(vars) }}
